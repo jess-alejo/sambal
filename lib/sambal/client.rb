@@ -9,7 +9,8 @@ module Sambal
 
     attr_reader :connected
 
-    NEW_LINE = /[\r\n]+/
+    NEW_LINE = /(\r\n|\r|\n)/
+    SMB_PROMPT = /(.*\n)?smb:.*\\>/
 
     def parsed_options(user_options)
       default_options = {
@@ -46,7 +47,7 @@ module Sambal
 
         @output, @input, @pid = PTY.spawn(command[0], *command[1..-1])
 
-        res = @output.expect(/(.*\n)?smb:.*\\>/, @timeout)[0] rescue nil
+        res = @output.expect(SMB_PROMPT, @timeout)[0] rescue nil
         @connected = case res
         when nil
           false
@@ -257,7 +258,7 @@ module Sambal
     def ask(cmd)
       @input.print("#{cmd}\n")
       response = begin
-                   @output.expect(/^smb:.*\\>/,@timeout)[0]
+                   @output.expect(SMB_PROMPT,@timeout)[0]
                  rescue => e
                    $stderr.puts e
                    nil
