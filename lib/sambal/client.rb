@@ -9,6 +9,8 @@ module Sambal
 
     attr_reader :connected
 
+    NEW_LINE = /[\r\n]+/
+
     def parsed_options(user_options)
       default_options = {
         domain: 'WORKGROUP',
@@ -105,7 +107,7 @@ module Sambal
 
     def cd(dir)
       response = ask("cd \"#{dir}\"")
-      if response.split("\r\n").join('') =~ /NT_STATUS_OBJECT_(NAME|PATH)_NOT_FOUND/
+      if response.split(NEW_LINE).join('') =~ /NT_STATUS_OBJECT_(NAME|PATH)_NOT_FOUND/
         Response.new(response, false)
       else
         Response.new(response, true)
@@ -190,7 +192,7 @@ module Sambal
         end
         cd '..'
         response = ask_wrapped 'rmdir', dir
-        next_line = response.split("\n")[1]
+        next_line = response.split(NEW_LINE)[1]
         if next_line =~ /^smb:.*\\>/
           Response.new(response, true)
         else
@@ -205,7 +207,7 @@ module Sambal
       begin
         file_context(filename) do |file|
           response = ask_wrapped 'del', file
-          next_line = response.split("\n")[1]
+          next_line = response.split(NEW_LINE)[1]
           if next_line =~ /^smb:.*\\>/
           Response.new(response, true)
           #elsif next_line =~ /^NT_STATUS_NO_SUCH_FILE.*$/
